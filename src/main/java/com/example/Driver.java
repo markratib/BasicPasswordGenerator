@@ -1,6 +1,7 @@
 package com.example;
 
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
@@ -13,87 +14,97 @@ public class Driver {
 
 	public static void main(String[] args) 
 	{
-		String specialStr = "~`!@#$%^&*()_-+={[}]|\\:;\"'<,>.?/";
-		String lowerStr = "abcdefghijklmnopqrstuvwxyz";
-		String upperStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		String numberStr = "0123456789";
-		StringBuilder password;
+		PasswordGenerator pGen = new PasswordGenerator();
+		PasswordEncryptor pEnc = new PasswordEncryptor();
+		Menu men = new Menu();
+		
+		StringBuilder password = null;
+		String encPassword = null;
+		String decPassword = null;
 		Scanner in = new Scanner(System.in);
-		char choice;
-		char[] specialArr = new char[specialStr.length()];
-		char[] lowerArr = new char[lowerStr.length()];
-		char[] upperArr = new char[upperStr.length()];
-		char[] numberArr = new char[numberStr.length()];
+		int choice;
+		char charChoice;
 		
-		specialArr = strtoCharArr(specialStr);
-		lowerArr = strtoCharArr(lowerStr);
-		upperArr = strtoCharArr(upperStr);
-		numberArr = strtoCharArr(numberStr);
+//		int length = getLength();
+//		password = pGen.generatePassword(length);
 		
-		Arrays.sort(specialArr);
-		
-		
-		System.out.println("***SPECIAL CHARACTERS***");
-		printArray(specialArr);
-		System.out.println("\n***LOWER CHARACTERS***");
-		printArray(lowerArr);
-		System.out.println("\n***UPPER CHARACTERS***");
-		printArray(upperArr);
-		System.out.println("\n***NUMBER CHARACTERS***");
-		printArray(numberArr);
-		
-		password = generatePassword(specialArr, lowerArr, upperArr, numberArr);
-		
-		System.out.println("Password generated: " + password);
-		
-		System.out.print("\nStore password encrypted in a text file? (y/n) ");
-		choice = in.next().charAt(0);
-		
-		if(choice == 'y' || choice == 'Y')
+		do
 		{
-			saveEncryptedPassword(password);
-		}
-		
-	}
-	
-	private static char[] strtoCharArr(String str)
-	{
-		char[] tempArr = new char[str.length()];
-		
-		for(int i = 0; i < str.length(); i++)
-		{
-			tempArr[i] = (char) str.charAt(i);
-		}
-		
-		return tempArr;
-	}
-	
-	private static void printArray(char[] array)
-	{
-		for(int i = 0; i < array.length; i++)
-		{
-			System.out.print(array[i]);
-			if(i != array.length - 1)
+			choice = men.getChoiceMain();
+			
+			switch(choice)
 			{
-				System.out.print(", ");
+				//password generation
+				case 1:
+				{
+					//if no password generated
+					if(password == null)
+					{
+						password = pGen.generatePassword();
+						System.out.println("Password generated: " + password);
+						
+					}else//there is already a password generated
+					{
+						//get user input to keep current or generate a new one
+						System.out.print("There is already a password generated, keep old password? (y/n) ");
+						charChoice = in.next().charAt(0);
+						//if user says no, gen a new password
+						if(charChoice == 'n')
+						{
+							password = pGen.generatePassword();
+						}
+					}
+					
+					break;
+				}
+				//save encrypt password
+				case 2:
+				{
+					//if no password is generated, generate one
+					if(password == null)
+					{
+						System.out.println("No password has been generated, generating a new password...");
+						password = pGen.generatePassword();
+						System.out.println("Password generated: " + password);
+					}
+					encPassword = pEnc.encryptPassword(password);
+					System.out.println("Encrypted password is: " + encPassword);
+					System.out.println("Saving password to file.");
+					savePassword(encPassword);
+					
+					break;
+				}
+				//save encrypted password
+				case 3:
+				{
+					decPassword = pEnc.decryptPassword(encPassword);
+					System.out.println("Decrypted password: " + decPassword);
+					
+					break;
+				}
+				//TBD
+				case 4:
+				{
+					
+					break;
+				}
+				default:
+				{
+					System.out.println("Exiting....");
+					choice = 0;
+				}
 			}
-		}
+		}while(choice != 0);
+		
+		
 	}
 	
-	private static StringBuilder generatePassword(char[] special, char[] lower, char[] upper, char[] number)
+	private static int getLength()
 	{
-		boolean weak = true;
-		boolean retry = true;
-		boolean specialChar = false;
-		boolean lowerChar = false;
-		boolean upperChar = false;
-		boolean numberChar = false;
-		StringBuilder temp;
-		int length;
-		int numWeak = 0;
-		char check;
 		Scanner in = new Scanner(System.in);
-		
+		boolean retry = true;
+		char check;
+		int length;
 		do
 		{
 			System.out.println("What is your desired length of password? ");
@@ -108,105 +119,24 @@ public class Driver {
 			
 		}while(retry);
 		
-		int[] charPos = new int[length];
-		Random rand = new Random();
-		
-		//assign what type of character goes in each position, ensuring we have at least 1 of each type.
-		do
-		{
-			temp = new StringBuilder();
-			specialChar = false;
-			lowerChar = false;
-			upperChar = false;
-			numberChar = false;
-			
-			for(int i = 0; i < charPos.length; i++)
-			{
-				charPos[i] = rand.nextInt(4) + 1;
-				switch(charPos[i])
-				{
-					case 1:
-					{
-						specialChar = true;
-						temp.append(special[rand.nextInt(special.length)]);
-						break;
-					}
-					case 2:
-					{
-						temp.append(lower[rand.nextInt(lower.length)]);
-						lowerChar = true;
-						break;
-					}
-					case 3:
-					{
-						temp.append(upper[rand.nextInt(upper.length)]);
-						upperChar = true;
-						break;
-					}
-					case 4:
-					{
-						temp.append(number[rand.nextInt(number.length)]);
-						numberChar = true;
-						break;
-					}
-				
-				}
-				
-				
-			}
-			//check if we have 1 of each type of character
-			if(specialChar && lowerChar && upperChar && numberChar)
-			{
-				//password is not weak, break out of the loop
-				weak = false;
-			}else
-			{
-				numWeak++;
-			}
-				
-		}while(weak);
-		
-		System.out.println("Number of weak passwords generated: " + numWeak);
-		return temp;
+		return length;
 	}
 	
-	private static void saveEncryptedPassword(StringBuilder password)
+	private static void savePassword(String encPassword)
 	{
-		String str = password.toString();
+		String filePath = ".\\src\\main\\resources\\passwords.txt";
+		FileOutputStream fout = null;
 		
-		try {
-			
-			String fileSaveLocation = ".\\src\\main\\resources\\passwords.txt";
-			FileOutputStream fout = new FileOutputStream(fileSaveLocation);
-			KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-			SecretKey AESKey = keyGenerator.generateKey();
-			Cipher AESCipher = Cipher.getInstance("AES");
-			byte[] byteArr = str.getBytes();
-			System.out.println("Unencrypted passowrd: " + byteArr);
-			
-			AESCipher.init(Cipher.ENCRYPT_MODE, AESKey);
-			byte[] encrypted = AESCipher.doFinal(byteArr);
-			
-			System.out.println("Encrypted password: " + encrypted);
-			
-			AESCipher.init(Cipher.DECRYPT_MODE, AESKey);
-			byte[] decrypted = AESCipher.doFinal(encrypted);
-			
-			System.out.println("Decrypted passowrd: " + decrypted);
-			String decryptedString = new String(decrypted);
-			if(decryptedString.compareTo(str) == 0)
-			{
-				System.out.println("Decrypted byte array is equivalent to original password.");
-			}else
-			{
-				System.out.println("Something went wrong, strings are not the same.");
-			}
-			
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
+		try
+		{
+			fout = new FileOutputStream(filePath);
+			fout.write(encPassword.getBytes());
+			fout.close();
+			System.out.println("Encrypted password saved to \"passwords.txt\"");
+		}catch(IOException e)
+		{
 			e.printStackTrace();
 		}
-		
-		
 	}
+	
 }
