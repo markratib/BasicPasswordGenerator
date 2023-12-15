@@ -13,7 +13,7 @@ public class PasswordGenerator
 		String lowerStr = "abcdefghijklmnopqrstuvwxyz";
 		String upperStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 		String numberStr = "0123456789";
-		int length = 16;
+		int length = 32;
 		boolean weak = true;
 		boolean specialChar = false;
 		boolean lowerChar = false;

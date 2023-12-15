@@ -1,14 +1,9 @@
 package com.example;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Random;
 import java.util.Scanner;
-
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 
 public class Driver {
 
@@ -21,6 +16,7 @@ public class Driver {
 		StringBuilder password = null;
 		String encPassword = null;
 		String decPassword = null;
+		String userNote;
 		Scanner in = new Scanner(System.in);
 		int choice;
 		char charChoice;
@@ -53,6 +49,7 @@ public class Driver {
 						{
 							password = pGen.generatePassword();
 						}
+						System.out.println("Password generated: " + password);
 					}
 					
 					break;
@@ -67,10 +64,17 @@ public class Driver {
 						password = pGen.generatePassword();
 						System.out.println("Password generated: " + password);
 					}
+					System.out.println("Give this entry a note to describe what it's for? (press enter to skip)");
+					userNote = in.nextLine();
+					if(userNote.compareTo("") == 0)
+					{
+						System.out.println("strings are same");
+					}
+					
 					encPassword = pEnc.encryptPassword(password);
 					System.out.println("Encrypted password is: " + encPassword);
 					System.out.println("Saving password to file.");
-					savePassword(encPassword);
+					savePassword(encPassword, userNote);
 					
 					break;
 				}
@@ -122,15 +126,17 @@ public class Driver {
 		return length;
 	}
 	
-	private static void savePassword(String encPassword)
+	private static void savePassword(String encPassword, String userNote)
 	{
 		String filePath = ".\\src\\main\\resources\\passwords.txt";
 		FileOutputStream fout = null;
 		
 		try
 		{
-			fout = new FileOutputStream(filePath);
-			fout.write(encPassword.getBytes());
+			//open the file in append mode
+			fout = new FileOutputStream(new File(filePath), true);
+			String writeStr = "\n" + encPassword + ", " + userNote;
+			fout.write(writeStr.getBytes());
 			fout.close();
 			System.out.println("Encrypted password saved to \"passwords.txt\"");
 		}catch(IOException e)
