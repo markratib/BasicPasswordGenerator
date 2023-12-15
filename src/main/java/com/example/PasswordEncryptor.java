@@ -21,7 +21,7 @@ public class PasswordEncryptor
 	private static final int ITERATION_COUNT = 65536;
 	
 	//encrypt password
-	public String encryptPassword(StringBuilder password)
+	public String encryptPassword(String password)
 	{
 		StringBuilder encPassword = null;
 		String str = password.toString();

@@ -1,9 +1,14 @@
 package com.example;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+
+import com.example.models.Password;
 
 public class Driver {
 
@@ -12,11 +17,14 @@ public class Driver {
 		PasswordGenerator pGen = new PasswordGenerator();
 		PasswordEncryptor pEnc = new PasswordEncryptor();
 		Menu men = new Menu();
-		
-		StringBuilder password = null;
+		int doNothingCount = 0;
+		Password currentPassword = null;
+		/* Not used anymore
+		StringBuilder password = null; 
 		String encPassword = null;
 		String decPassword = null;
 		String userNote;
+		*/
 		Scanner in = new Scanner(System.in);
 		int choice;
 		char charChoice;
@@ -34,10 +42,11 @@ public class Driver {
 				case 1:
 				{
 					//if no password generated
-					if(password == null)
+					if(currentPassword == null)
 					{
-						password = pGen.generatePassword();
-						System.out.println("Password generated: " + password);
+						currentPassword = new Password();
+						currentPassword.setDecryptedPassword(pGen.generatePassword().toString());
+						System.out.println("Password generated: " + currentPassword.getDecryptedPassword());
 						
 					}else//there is already a password generated
 					{
@@ -47,9 +56,9 @@ public class Driver {
 						//if user says no, gen a new password
 						if(charChoice == 'n')
 						{
-							password = pGen.generatePassword();
+							currentPassword.setDecryptedPassword(pGen.generatePassword().toString());
 						}
-						System.out.println("Password generated: " + password);
+						System.out.println("Password generated: " + currentPassword.getDecryptedPassword());
 					}
 					
 					break;
@@ -58,38 +67,60 @@ public class Driver {
 				case 2:
 				{
 					//if no password is generated, generate one
-					if(password == null)
+					if(currentPassword == null)
 					{
 						System.out.println("No password has been generated, generating a new password...");
-						password = pGen.generatePassword();
-						System.out.println("Password generated: " + password);
+						currentPassword = new Password();
+						currentPassword.setDecryptedPassword(pGen.generatePassword().toString());
+						System.out.println("Password generated: " + currentPassword.getDecryptedPassword());
 					}
 					System.out.println("Give this entry a note to describe what it's for? (press enter to skip)");
-					userNote = in.nextLine();
-					if(userNote.compareTo("") == 0)
-					{
-						System.out.println("strings are same");
-					}
+					currentPassword.setuserNote(in.nextLine());
 					
-					encPassword = pEnc.encryptPassword(password);
-					System.out.println("Encrypted password is: " + encPassword);
+					currentPassword.setEncryptedPassword(pEnc.encryptPassword(currentPassword.getDecryptedPassword()));
+					System.out.println("Encrypted password is: " + currentPassword.getEncryptedPassword());
 					System.out.println("Saving password to file.");
-					savePassword(encPassword, userNote);
+					savePassword(currentPassword);
 					
 					break;
 				}
 				//save encrypted password
 				case 3:
 				{
-					decPassword = pEnc.decryptPassword(encPassword);
-					System.out.println("Decrypted password: " + decPassword);
+					//get a list of current saved passwords
+					//ask user which they want to decrypt
+					//decrypt passowrd
+					//done?
+					/*old functionality, not used*/
+					if(currentPassword != null)
+					{
+						currentPassword.setDecryptedPassword(pEnc.decryptPassword(currentPassword.getEncryptedPassword()));
+						System.out.println("Decrypted password: " + currentPassword.getDecryptedPassword());
+					}else
+					{
+						System.out.println("No password currently in use....");
+					}
+					
 					
 					break;
 				}
 				//TBD
 				case 4:
 				{
-					
+					System.out.println("I have done nothing " + ++doNothingCount + " times.");
+					if(doNothingCount > 10 && doNothingCount < 100)
+					{
+						System.out.println("Please sir, give me work.");
+					}else if(doNothingCount > 100 && doNothingCount < 1000)
+					{
+						System.out.println("Wow you're bored.");
+					}else if(doNothingCount > 1000 && doNothingCount < 10000)
+					{
+						System.out.println("I hope you're using a macro to do this...");
+					}else if(doNothingCount > 10000)
+					{
+						System.out.println("o7");
+					}
 					break;
 				}
 				default:
@@ -126,7 +157,7 @@ public class Driver {
 		return length;
 	}
 	
-	private static void savePassword(String encPassword, String userNote)
+	private static void savePassword(Password pass)
 	{
 		String filePath = ".\\src\\main\\resources\\passwords.txt";
 		FileOutputStream fout = null;
@@ -135,7 +166,7 @@ public class Driver {
 		{
 			//open the file in append mode
 			fout = new FileOutputStream(new File(filePath), true);
-			String writeStr = "\n" + encPassword + ", " + userNote;
+			String writeStr = "\n" + pass.getEncryptedPassword() + ", " + pass.getuserNote();
 			fout.write(writeStr.getBytes());
 			fout.close();
 			System.out.println("Encrypted password saved to \"passwords.txt\"");
@@ -145,4 +176,58 @@ public class Driver {
 		}
 	}
 	
+	private static List<String> getNotes()
+	{
+		
+		return null;
+	}
+	private static List<String> getPasswords()
+	{
+		String filePath = ".\\src\\main\\resources\\passwords.txt";
+		List<String> passList = new ArrayList<String>();
+		StringBuilder temp = new StringBuilder();
+		int c;
+		//bool for when we're at the , in the password to signal we're at the comment part
+		boolean skipover = false;
+		
+		try
+		{
+			FileInputStream in = new FileInputStream(filePath);
+			while((c = in.read()) != -1)
+			{
+				//we're still getting the password
+				if(!skipover)
+				{
+					//if we're at the end of the password part
+					if((char) c == ',')
+					{
+						//set flag
+						skipover = true;
+						//add the password to the list
+						passList.add(temp.toString());
+						//reset our placeholder
+						temp = new StringBuilder();
+						
+					}else//continue appending characters
+					{
+						temp.append((char) c);
+					}
+				}else//check for '\n' to begin getting the next password
+				{
+					if((char) c == '\n')
+					{
+						skipover = false;
+					}
+				}
+			}
+			
+			
+			
+		}catch(IOException e)
+		{
+			e.printStackTrace();
+		}
+		
+		return passList;
+	}
 }

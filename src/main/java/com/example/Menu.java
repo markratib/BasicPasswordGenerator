@@ -84,7 +84,8 @@ public class Menu
 						+ "\n*******************************"
 						+ "\n*1. Generate Password         *"
 						+ "\n*2. Save Encrypted Password   *"
-						+ "\n*3. DO STUFF                  *"
+						+ "\n*3. Decrypt Saved/Inuse pass  *"
+						+ "\n*4. Nothing                   *"
 						+ "\n*0. Exit                      *"
 						+ "\n*******************************";
 //		cls();
