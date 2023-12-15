@@ -64,6 +64,7 @@ public class PasswordEncryptor
 		String secretKey = getSecretKey();
 		String salt = getSalt();
 		
+		System.out.println("Beginning password decryption...");
 		try
 		{
 			//do lots of stuff
@@ -81,7 +82,8 @@ public class PasswordEncryptor
 	        byte[] encryptedData = new byte[iv.length + cipherText.length];
 	        System.arraycopy(encData, 16, cipherText, 0, cipherText.length);
 	        byte[] decryptedText = cipher.doFinal(cipherText);
-
+	        System.out.println("Password decrypted... sending back to calling function...");
+//	        System.out.println(new String(decryptedText, "UTF-8"));
 	        return new String(decryptedText, "UTF-8");
 			
 		}catch(Exception e)

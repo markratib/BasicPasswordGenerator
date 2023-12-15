@@ -26,7 +26,8 @@ public class Driver {
 		String userNote;
 		*/
 		Scanner in = new Scanner(System.in);
-		int choice;
+		int mainChoice;
+		int subChoice;
 		char charChoice;
 		
 //		int length = getLength();
@@ -34,9 +35,9 @@ public class Driver {
 		
 		do
 		{
-			choice = men.getChoiceMain();
+			mainChoice = men.getChoiceMain();
 			
-			switch(choice)
+			switch(mainChoice)
 			{
 				//password generation
 				case 1:
@@ -87,11 +88,18 @@ public class Driver {
 				//save encrypted password
 				case 3:
 				{
+					List<Password> passList = new ArrayList<Password>();
 					//get a list of current saved passwords
+					passList = getPasswords();
 					//ask user which they want to decrypt
+					//print out all notes
+					String message = "Which one do you want decrypted?\n(type the number to the corresponding note) ";
+					subChoice = men.getChoiceGen(passList, message);
 					//decrypt passowrd
+					passList.get(subChoice - 1).setDecryptedPassword(pEnc.decryptPassword(passList.get(subChoice - 1).getEncryptedPassword()));
+					System.out.println("Full object:\n" + passList.get(subChoice - 1).toString());
 					//done?
-					/*old functionality, not used*/
+					/*old functionality, not used
 					if(currentPassword != null)
 					{
 						currentPassword.setDecryptedPassword(pEnc.decryptPassword(currentPassword.getEncryptedPassword()));
@@ -99,9 +107,9 @@ public class Driver {
 					}else
 					{
 						System.out.println("No password currently in use....");
-					}
+					}*/
 					
-					
+					passList = null;
 					break;
 				}
 				//TBD
@@ -126,10 +134,10 @@ public class Driver {
 				default:
 				{
 					System.out.println("Exiting....");
-					choice = 0;
+					mainChoice = 0;
 				}
 			}
-		}while(choice != 0);
+		}while(mainChoice != 0);
 		
 		
 	}
@@ -176,19 +184,22 @@ public class Driver {
 		}
 	}
 	
-	private static List<String> getNotes()
+	private static ArrayList<String> getNotes()
 	{
 		
 		return null;
 	}
-	private static List<String> getPasswords()
+	
+	private static List<Password> getPasswords()
 	{
 		String filePath = ".\\src\\main\\resources\\passwords.txt";
-		List<String> passList = new ArrayList<String>();
+		List<Password> passList = new ArrayList<Password>();
+		Password tempPass = new Password();
 		StringBuilder temp = new StringBuilder();
+		int numPasswords = 0;
 		int c;
 		//bool for when we're at the , in the password to signal we're at the comment part
-		boolean skipover = false;
+		boolean notePart = false;
 		
 		try
 		{
@@ -196,15 +207,16 @@ public class Driver {
 			while((c = in.read()) != -1)
 			{
 				//we're still getting the password
-				if(!skipover)
+				if(!notePart)
 				{
 					//if we're at the end of the password part
 					if((char) c == ',')
 					{
-						//set flag
-						skipover = true;
-						//add the password to the list
-						passList.add(temp.toString());
+						//get the first space and set the flag
+						in.read();
+						notePart = true;
+						//add the password to the temp password object
+						tempPass.setEncryptedPassword(temp.toString());
 						//reset our placeholder
 						temp = new StringBuilder();
 						
@@ -212,15 +224,33 @@ public class Driver {
 					{
 						temp.append((char) c);
 					}
-				}else//check for '\n' to begin getting the next password
+				}else//get the note part
 				{
+					//check if we're at the end of the note
 					if((char) c == '\n')
 					{
-						skipover = false;
+						//add the note to the temp password object
+						tempPass.setuserNote(temp.toString());
+						//add the password object to the password list
+						passList.add(tempPass);
+						//reset tempPass
+						tempPass = new Password();
+						//reset string maker
+						temp = new StringBuilder();
+						//reset note flag
+						notePart = false;
+						numPasswords++;
+					}else//still getting note characters
+					{
+						temp.append((char) c);
 					}
 				}
 			}
-			
+			//add the last note to the temp password object
+			tempPass.setuserNote(temp.toString());
+			//add the last password object to the password list
+			passList.add(tempPass);
+			numPasswords++;
 			
 			
 		}catch(IOException e)
@@ -230,4 +260,6 @@ public class Driver {
 		
 		return passList;
 	}
+
+	
 }
